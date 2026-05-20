@@ -89,12 +89,11 @@ def _build_public_events(engine) -> List[Dict[str, Any]]:
     for rlog in all_logs:
         for act in rlog.actions:
             if act.action_type in safe_types:
-                # 安全：不暴露真实角色（游戏结束前应全为 "hidden"）
-                safe_role = "hidden"
+                # 安全：不暴露真实角色（游戏结束前 role 为 None）
                 events.append({
                     "event_type": act.action_type,
                     "actor_id": act.actor_id,
-                    "role": safe_role,
+                    "role": None,
                     "content": act.content or "",
                     "round": rlog.round,
                     "timestamp": act.timestamp,

@@ -428,7 +428,7 @@ class TestReplay:
                 pp = ev.get("public_payload", {})
                 # 未结束前 public_payload 中的 role 不应是真实角色
                 role = pp.get("role", "")
-                assert role == "hidden" or role == "", f"Role leak in event {ev['index']}: {role}"
+                assert role is None or role == "", f"Role leak in event {ev['index']}: {role}"
 
 
 class TestPlayerViewSecurity:
@@ -481,7 +481,7 @@ class TestRoleLeakInPublicState:
         state = runner.get_public_state()
         for ev in state.public_events:
             role = ev.get("role", "")
-            assert role == "hidden", f"Public event should have hidden role, got: {role}"
+            assert role is None, f"Public event should have None role, got: {role}"
 
     def test_public_state_shows_roles_after_game_over(self):
         """游戏结束后 public state 可以展示角色"""
@@ -506,7 +506,7 @@ class TestRoleLeakInPublicState:
             pp = ev.get("public_payload", {})
             role = pp.get("role", "")
             if not is_ended:
-                assert role in ("hidden", "", None), f"WS event role leak: {role}"
+                assert role is None or role == "", f"WS event role leak: {role}"
             else:
                 # 结束后可以包含真实角色
                 assert role != "" or True

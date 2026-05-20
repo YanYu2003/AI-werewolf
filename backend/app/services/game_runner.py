@@ -25,6 +25,8 @@ from ..schemas.models import (
 )
 from .public_state_service import build_public_state
 from .websocket_manager import WebSocketManager
+from ..llm.config import get_config
+from ..llm.client import create_llm_client
 
 
 class GameRunner:
@@ -52,12 +54,23 @@ class GameRunner:
         self.updated_at = self.created_at
         self._pending_human: Optional[int] = None  # 等待 human action 的 player_id
 
+        # LLM 配置（可选，默认关闭）
+        self.llm_config = get_config()
+        self.llm_client = create_llm_client(self.llm_config)
+        self.llm_enabled = self.llm_client is not None
+
         # 为 AI 玩家创建 Agent
         self.agents: Dict[int, Any] = {}
         for p in engine.players:
             if p.id not in self.human_player_ids:
                 from ..agents.factory import create_agent
-                self.agents[p.id] = create_agent(p.id, p.role, p.name)
+                self.agents[p.id] = create_agent(
+                    p.id,
+                    p.role,
+                    p.name,
+                    enable_llm=self.llm_enabled,
+                    llm_client=self.llm_client,
+                )
 
     # ── 状态查询 ───────────────────────────────────
 
@@ -425,9 +438,9 @@ class GameRunner:
                     "werewolf_kill", "seer_investigate",
                     "vote", "hunter_shot", "hunter_triggered",
                 ):
-                    # 安全：不暴露隐藏角色
+                    # 安全：不暴露隐藏角色（未结束前 role 为 None）
                     is_ended = self.engine.phase == GamePhase.ENDED
-                    safe_role = act.get("role") if is_ended else "hidden"
+                    safe_role = act.get("role") if is_ended else None
                     events.append({
                         "index": idx,
                         "round": rlog.get("round", 0),

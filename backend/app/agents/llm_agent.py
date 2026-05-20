@@ -91,24 +91,28 @@ class LLMEnabledAgent(BaseAgent):
         super().receive_view(view)
         self._heuristic.receive_view(view)
 
-    def _get_legal_actions_from_view(self) -> list[str]:
-        """从视野推断可行动作（简化版本）"""
-        # 实际 legal actions 应由 GameRunner 提供
-        return []
+    def _get_legal_actions(self, default: list[str]) -> list[str]:
+        """获取 legal_actions，优先使用 view.legal_actions"""
+        if self._view and hasattr(self._view, 'legal_actions'):
+            from_view = self._view.legal_actions
+            if from_view and len(from_view) > 0:
+                return list(from_view)
+        return default
 
     # ── 各阶段决策方法 ──
 
     def decide_night_action(self) -> AgentAction:
         view = self._view
-        legal = []
+        default_legal = []
         if self.role == "werewolf":
-            legal = ["werewolf_kill"]
+            default_legal = ["werewolf_kill"]
         elif self.role == "seer":
-            legal = ["seer_investigate"]
+            default_legal = ["seer_investigate"]
         elif self.role == "witch":
-            legal = ["witch_action"]
+            default_legal = ["witch_action"]
         elif self.role == "hunter":
-            legal = ["hunter_shot"]
+            default_legal = ["hunter_shot"]
+        legal = self._get_legal_actions(default_legal)
 
         action = self._decide_with_llm(view, legal)
         if action:
@@ -126,7 +130,7 @@ class LLMEnabledAgent(BaseAgent):
 
     def speak(self) -> AgentAction:
         view = self._view
-        legal = ["speak"]
+        legal = self._get_legal_actions(["speak"])
         action = self._decide_with_llm(view, legal)
         if action:
             return action
@@ -143,7 +147,7 @@ class LLMEnabledAgent(BaseAgent):
 
     def decide_vote(self) -> AgentAction:
         view = self._view
-        legal = ["vote"]
+        legal = self._get_legal_actions(["vote"])
         action = self._decide_with_llm(view, legal)
         if action:
             return action
@@ -160,7 +164,7 @@ class LLMEnabledAgent(BaseAgent):
 
     def decide_hunter_shot(self) -> AgentAction:
         view = self._view
-        legal = ["hunter_shot", "hunter_skip"]
+        legal = self._get_legal_actions(["hunter_shot", "hunter_skip"])
         action = self._decide_with_llm(view, legal)
         if action:
             return action

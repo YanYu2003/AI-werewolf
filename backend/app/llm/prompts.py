@@ -69,20 +69,34 @@ def build_instruction_prompt(
 def build_agent_view_safe(view_dict: dict[str, Any]) -> str:
     """
     从 AgentView dict 构建安全的 LLM 输入。
-    确保不包含 hidden_roles / all_roles / 完整 GameState。
+    使用真实 AgentView 字段，确保不包含 hidden_roles / all_roles / 完整 GameState。
     """
-    # 只保留 LLM 需要看到的字段
+    # public_players 安全化：不含 role
+    safe_public_players = []
+    for p in view_dict.get("public_players", []):
+        safe_public_players.append({
+            "player_id": p.get("player_id"),
+            "name": p.get("name"),
+            "alive": p.get("alive"),
+        })
+
+    # 使用真实 AgentView 字段
     safe = {
-        "self_player": view_dict.get("self_player"),
-        "alive_players": [
-            {"player_id": p.get("player_id"), "name": p.get("name")}
-            for p in view_dict.get("alive_players", [])
-        ],
-        "dead_players_public": view_dict.get("dead_players_public", []),
-        "current_phase": view_dict.get("phase"),
-        "round_num": view_dict.get("round_num"),
+        "game_id": view_dict.get("game_id"),
+        "round": view_dict.get("round"),
+        "phase": view_dict.get("phase"),
         "day_stage": view_dict.get("day_stage"),
         "night_stage": view_dict.get("night_stage"),
+        "self_player": {
+            "player_id": view_dict.get("self_player", {}).get("player_id"),
+            "name": view_dict.get("self_player", {}).get("name"),
+            "role": view_dict.get("self_player", {}).get("role"),
+            "alive": view_dict.get("self_player", {}).get("alive"),
+        },
+        "public_players": safe_public_players,
+        "public_events": view_dict.get("public_events", []),
+        "private_info": view_dict.get("private_info", {}),
+        "legal_actions": view_dict.get("legal_actions", []),
     }
     import json
     return json.dumps(safe, ensure_ascii=False, default=str)

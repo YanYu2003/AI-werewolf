@@ -163,11 +163,20 @@ async def get_player_view(game_id: int, player_id: int):
     """
     TODO: auth required for production
     返回该 player_id 合法可见的 AgentView。
+    仅 human player 可以查询自己的私有视角。
     """
     runner = _game_runners.get(game_id)
     if not runner:
         raise HTTPException(404, f"Game {game_id} not found")
-    return runner.get_player_view(player_id)
+    result = runner.get_player_view(player_id)
+    if "error" in result:
+        err = result["error"]
+        if "Forbidden" in err:
+            raise HTTPException(403, err)
+        if "not found" in err.lower():
+            raise HTTPException(404, err)
+        raise HTTPException(400, err)
+    return result
 
 
 # ── 5. 推进 AI 自动对局一步 ─────────────────────
