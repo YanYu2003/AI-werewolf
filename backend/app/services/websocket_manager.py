@@ -51,13 +51,26 @@ class WebSocketManager:
             del self._connections[game_id]
 
     async def broadcast_snapshot(self, game_id: int, state_dict: Dict[str, Any]):
-        """推送快照"""
+        """推送快照给房间内所有连接"""
         await self.broadcast(game_id, {
             "type": "snapshot",
             "game_id": game_id,
             "payload": {"state": state_dict},
             "timestamp": datetime.now().isoformat(),
         })
+
+    async def send_snapshot(self, ws: WebSocket, game_id: int, state_dict: Dict[str, Any]):
+        """向指定连接推送快照（仅用于新连接首次推送）"""
+        try:
+            data = json.dumps({
+                "type": "snapshot",
+                "game_id": game_id,
+                "payload": {"state": state_dict},
+                "timestamp": datetime.now().isoformat(),
+            }, ensure_ascii=False, default=str)
+            await ws.send_text(data)
+        except Exception:
+            pass
 
     async def broadcast_event(self, game_id: int, event: Dict[str, Any]):
         """推送事件"""

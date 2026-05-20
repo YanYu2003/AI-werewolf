@@ -1,0 +1,1003 @@
+{
+  "phase": "Phase 3",
+  "status": "completed",
+  "summary": {
+    "goal": "前端观战 UI + WebSocket 实时推送 + 人机混战输入接口 + 对局回放基础能力",
+    "completed_items": [
+      "9 个 REST API 端点",
+      "WebSocket 实时观战",
+      "PublicStateService 泄密防护",
+      "Human Action 提交+校验",
+      "GameRunner step/auto-run",
+      "ReplayService",
+      "前端 HomePage / GamePage / ReplayPage",
+      "6 个前端组件",
+      "17 个 Phase 3 后端测试",
+      "前端 TypeScript + Vite build 通过"
+    ]
+  },
+  "detailed_test_results": [
+    {
+      "label": "Phase 1: 基础引擎",
+      "file": "backend/tests/test_engine.py",
+      "total": 19,
+      "passed": 19,
+      "failed": 0,
+      "all_passed": true,
+      "tests": [
+        {
+          "test": "test_create_game_default_roles [  5%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_create_game_custom_roles [ 10%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_create_game_roles_count_mismatch [ 15%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_night_phase_flow [ 21%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_day_phase_flow [ 26%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_full_round_cycle [ 31%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_villagers_win_when_all_wolves_dead [ 36%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_wolves_win_when_outnumber_villagers [ 42%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_winner_check_no_early_end [ 47%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_simulated_game_wolves_win [ 52%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_log_structure  [ 57%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_log_records_actions [ 63%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_witch_save_prevents_death [ 68%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_witch_poison_kills [ 73%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_hunter_kills_when_exiled [ 78%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_log_json_serializable [ 84%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_round_not_duplicate_in_logs [ 89%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_system_action_actor_id_is_0 [ 94%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_non_system_action_actor_id_not_0 [100%]",
+          "result": "PASSED"
+        }
+      ]
+    },
+    {
+      "label": "Phase 2: Agent 接口",
+      "file": "backend/tests/test_agents.py",
+      "total": 12,
+      "passed": 12,
+      "failed": 0,
+      "all_passed": true,
+      "tests": [
+        {
+          "test": "test_create_werewolf_agent [  8%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_create_seer_agent [ 16%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_create_witch_agent [ 25%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_create_hunter_agent [ 33%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_create_villager_agent [ 41%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_create_via_factory [ 50%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_factory_create_for_game [ 58%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_receive_view [ 66%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_werewolf_speak [ 75%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_seer_night_action [ 83%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_villager_night_action_is_skip [ 91%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_agent_action_json_serializable [100%]",
+          "result": "PASSED"
+        }
+      ]
+    },
+    {
+      "label": "Phase 2: 信息隔离",
+      "file": "backend/tests/test_visibility.py",
+      "total": 11,
+      "passed": 11,
+      "failed": 0,
+      "all_passed": true,
+      "tests": [
+        {
+          "test": "test_villager_view_has_no_role_info [  9%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_villager_view_no_known_wolves [ 18%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_seer_view_no_global_roles [ 27%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_seer_cannot_see_wolves [ 36%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_witch_view_has_potion_info [ 45%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_witch_view_no_wolves [ 54%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_wolf_can_see_teammates [ 63%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_wolf_view_public_no_role [ 72%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_hunter_view_no_hidden_roles [ 81%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_agent_view_does_not_contain_hidden_roles [ 90%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_all_views_serializable [100%]",
+          "result": "PASSED"
+        }
+      ]
+    },
+    {
+      "label": "Phase 2: 动作合法性",
+      "file": "backend/tests/test_agent_actions.py",
+      "total": 8,
+      "passed": 8,
+      "failed": 0,
+      "all_passed": true,
+      "tests": [
+        {
+          "test": "test_wolf_cannot_kill_wolf [ 12%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_wolf_cannot_kill_dead [ 25%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_villager_cannot_night_action [ 37%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_seer_cannot_investigate_self [ 50%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_cannot_vote_dead [ 62%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_cannot_vote_self [ 75%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_hunter_cannot_shoot_self [ 87%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_witch_cannot_reuse_antidote [100%]",
+          "result": "PASSED"
+        }
+      ]
+    },
+    {
+      "label": "Phase 2: 集成",
+      "file": "backend/tests/test_phase2_integration.py",
+      "total": 9,
+      "passed": 9,
+      "failed": 0,
+      "all_passed": true,
+      "tests": [
+        {
+          "test": "test_agent_game_produces_winner [ 11%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_game_over_action_present [ 22%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_logs_contain_speak [ 33%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_logs_contain_vote [ 44%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_logs_contain_night_actions [ 55%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_logs_round_not_duplicate [ 66%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_logs_json_serializable [ 77%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_create_service_without_agents [ 88%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_service_called_on_ended_game [100%]",
+          "result": "PASSED"
+        }
+      ]
+    },
+    {
+      "label": "Phase 3: API/WS/公开状态/Human/回放",
+      "file": "backend/tests/test_phase3.py",
+      "total": 17,
+      "passed": 17,
+      "failed": 0,
+      "all_passed": true,
+      "tests": [
+        {
+          "test": "test_public_state_no_role_before_game_over [  5%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_public_state_reveals_roles_after_game_over [ 11%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_public_state_does_not_contain_hidden_roles [ 17%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_player_view_serializable [ 23%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_runner_auto_run_produces_winner [ 29%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_runner_step_returns_events [ 35%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_runner_public_state_accessible [ 41%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_runner_replay_has_events [ 47%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_runner_logs_accessible [ 52%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_runner_no_human_pending_for_all_ai [ 58%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_human_can_submit_action [ 64%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_human_invalid_action_rejected [ 70%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_human_action_with_wrong_player_id [ 76%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_connection_tracking [ 82%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_active_games_reflects_connections [ 88%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_replay_events_ordered [ 94%]",
+          "result": "PASSED"
+        },
+        {
+          "test": "test_replay_no_role_leaks_before_game_over [100%]",
+          "result": "PASSED"
+        }
+      ]
+    }
+  ],
+  "sample_game": {
+    "game_id": 1,
+    "total_rounds": 3,
+    "winner_team": "wolves",
+    "total_actions_logged": 54,
+    "player_roles": [
+      {
+        "id": 1,
+        "name": "A",
+        "role": "villager",
+        "final_alive": false
+      },
+      {
+        "id": 2,
+        "name": "B",
+        "role": "villager",
+        "final_alive": false
+      },
+      {
+        "id": 3,
+        "name": "C",
+        "role": "villager",
+        "final_alive": false
+      },
+      {
+        "id": 4,
+        "name": "D",
+        "role": "hunter",
+        "final_alive": false
+      },
+      {
+        "id": 5,
+        "name": "E",
+        "role": "witch",
+        "final_alive": true
+      },
+      {
+        "id": 6,
+        "name": "F",
+        "role": "werewolf",
+        "final_alive": true
+      },
+      {
+        "id": 7,
+        "name": "G",
+        "role": "werewolf",
+        "final_alive": true
+      },
+      {
+        "id": 8,
+        "name": "H",
+        "role": "seer",
+        "final_alive": true
+      }
+    ],
+    "game_flow": [
+      {
+        "idx": 0,
+        "round": 1,
+        "phase": "night",
+        "type": "werewolf_kill",
+        "detail": null
+      },
+      {
+        "idx": 1,
+        "round": 1,
+        "phase": "night",
+        "type": "werewolf_kill",
+        "detail": null
+      },
+      {
+        "idx": 2,
+        "round": 1,
+        "phase": "night",
+        "type": "seer_investigate",
+        "detail": "查验 G: 狼人"
+      },
+      {
+        "idx": 3,
+        "round": 1,
+        "phase": "night",
+        "type": "night_resolve",
+        "detail": "夜晚死亡玩家: []"
+      },
+      {
+        "idx": 4,
+        "round": 1,
+        "phase": "day",
+        "type": "announce_death",
+        "detail": "昨晚是平安夜，无人死亡"
+      },
+      {
+        "idx": 5,
+        "round": 1,
+        "phase": "day",
+        "type": "speak",
+        "detail": "我是村民，没有特殊信息，听大家的。"
+      },
+      {
+        "idx": 6,
+        "round": 1,
+        "phase": "day",
+        "type": "speak",
+        "detail": "我是村民，没有特殊信息，听大家的。"
+      },
+      {
+        "idx": 7,
+        "round": 1,
+        "phase": "day",
+        "type": "speak",
+        "detail": "我是村民，没有特殊信息，听大家的。"
+      },
+      {
+        "idx": 8,
+        "round": 1,
+        "phase": "day",
+        "type": "speak",
+        "detail": "我是村民。"
+      },
+      {
+        "idx": 9,
+        "round": 1,
+        "phase": "day",
+        "type": "speak",
+        "detail": "我是村民。"
+      },
+      {
+        "idx": 10,
+        "round": 1,
+        "phase": "day",
+        "type": "speak",
+        "detail": "我是村民，目前没什么信息，跟大家一起投票。"
+      },
+      {
+        "idx": 11,
+        "round": 1,
+        "phase": "day",
+        "type": "speak",
+        "detail": "我是村民，目前没什么信息，跟大家一起投票。"
+      },
+      {
+        "idx": 12,
+        "round": 1,
+        "phase": "day",
+        "type": "speak",
+        "detail": "我是村民。"
+      },
+      {
+        "idx": 13,
+        "round": 1,
+        "phase": "day",
+        "type": "vote",
+        "detail": "A 投票给 B"
+      },
+      {
+        "idx": 14,
+        "round": 1,
+        "phase": "day",
+        "type": "vote",
+        "detail": "B 投票给 A"
+      },
+      {
+        "idx": 15,
+        "round": 1,
+        "phase": "day",
+        "type": "vote",
+        "detail": "C 投票给 A"
+      },
+      {
+        "idx": 16,
+        "round": 1,
+        "phase": "day",
+        "type": "vote",
+        "detail": "D 投票给 A"
+      },
+      {
+        "idx": 17,
+        "round": 1,
+        "phase": "day",
+        "type": "vote",
+        "detail": "E 投票给 A"
+      },
+      {
+        "idx": 18,
+        "round": 1,
+        "phase": "day",
+        "type": "vote",
+        "detail": "F 投票给 E"
+      },
+      {
+        "idx": 19,
+        "round": 1,
+        "phase": "day",
+        "type": "vote",
+        "detail": "G 投票给 A"
+      },
+      {
+        "idx": 20,
+        "round": 1,
+        "phase": "day",
+        "type": "vote",
+        "detail": "H 投票给 A"
+      },
+      {
+        "idx": 21,
+        "round": 1,
+        "phase": "day",
+        "type": "vote_result",
+        "detail": "A(#1) 被投票放逐"
+      },
+      {
+        "idx": 22,
+        "round": 2,
+        "phase": "night",
+        "type": "werewolf_kill",
+        "detail": null
+      },
+      {
+        "idx": 23,
+        "round": 2,
+        "phase": "night",
+        "type": "werewolf_kill",
+        "detail": null
+      },
+      {
+        "idx": 24,
+        "round": 2,
+        "phase": "night",
+        "type": "seer_investigate",
+        "detail": "查验 F: 狼人"
+      },
+      {
+        "idx": 25,
+        "round": 2,
+        "phase": "night",
+        "type": "night_resolve",
+        "detail": "夜晚死亡玩家: [2]"
+      },
+      {
+        "idx": 26,
+        "round": 2,
+        "phase": "day",
+        "type": "announce_death",
+        "detail": "昨晚 B 死亡"
+      },
+      {
+        "idx": 27,
+        "round": 2,
+        "phase": "day",
+        "type": "speak",
+        "detail": "我是村民，没有特殊信息，听大家的。"
+      },
+      {
+        "idx": 28,
+        "round": 2,
+        "phase": "day",
+        "type": "speak",
+        "detail": "我是村民。"
+      },
+      {
+        "idx": 29,
+        "round": 2,
+        "phase": "day",
+        "type": "speak",
+        "detail": "我是村民。"
+      },
+      {
+        "idx": 30,
+        "round": 2,
+        "phase": "day",
+        "type": "speak",
+        "detail": "我是村民，目前没什么信息，跟大家一起投票。"
+      },
+      {
+        "idx": 31,
+        "round": 2,
+        "phase": "day",
+        "type": "speak",
+        "detail": "我是村民，目前没什么信息，跟大家一起投票。"
+      },
+      {
+        "idx": 32,
+        "round": 2,
+        "phase": "day",
+        "type": "speak",
+        "detail": "我是村民。"
+      },
+      {
+        "idx": 33,
+        "round": 2,
+        "phase": "day",
+        "type": "vote",
+        "detail": "C 投票给 D"
+      },
+      {
+        "idx": 34,
+        "round": 2,
+        "phase": "day",
+        "type": "vote",
+        "detail": "D 投票给 C"
+      },
+      {
+        "idx": 35,
+        "round": 2,
+        "phase": "day",
+        "type": "vote",
+        "detail": "E 投票给 C"
+      },
+      {
+        "idx": 36,
+        "round": 2,
+        "phase": "day",
+        "type": "vote",
+        "detail": "F 投票给 E"
+      },
+      {
+        "idx": 37,
+        "round": 2,
+        "phase": "day",
+        "type": "vote",
+        "detail": "G 投票给 D"
+      },
+      {
+        "idx": 38,
+        "round": 2,
+        "phase": "day",
+        "type": "vote",
+        "detail": "H 投票给 G"
+      },
+      {
+        "idx": 39,
+        "round": 2,
+        "phase": "day",
+        "type": "vote_result",
+        "detail": "平票: D, C，无人被放逐"
+      },
+      {
+        "idx": 40,
+        "round": 3,
+        "phase": "night",
+        "type": "werewolf_kill",
+        "detail": null
+      },
+      {
+        "idx": 41,
+        "round": 3,
+        "phase": "night",
+        "type": "werewolf_kill",
+        "detail": null
+      },
+      {
+        "idx": 42,
+        "round": 3,
+        "phase": "night",
+        "type": "seer_investigate",
+        "detail": "查验 D: 好人"
+      },
+      {
+        "idx": 43,
+        "round": 3,
+        "phase": "night",
+        "type": "night_resolve",
+        "detail": "夜晚死亡玩家: [4]"
+      },
+      {
+        "idx": 44,
+        "round": 3,
+        "phase": "day",
+        "type": "hunter_triggered",
+        "detail": "猎人 D(#4) 在夜晚死亡，等待开枪"
+      },
+      {
+        "idx": 45,
+        "round": 3,
+        "phase": "day",
+        "type": "announce_death",
+        "detail": "昨晚 D 死亡"
+      },
+      {
+        "idx": 46,
+        "round": 3,
+        "phase": "day",
+        "type": "hunter_shot",
+        "detail": "猎人 D(#4) 开枪带走 C(#3)"
+      },
+      {
+        "idx": 47,
+        "round": 3,
+        "phase": "day",
+        "type": "game_over",
+        "detail": "狼人阵营获胜！存活情况 -> 狼人: 2 / 好人: 2"
+      }
+    ]
+  },
+  "modified_files": [
+    "backend/app/schemas/api.py",
+    "backend/app/schemas/websocket.py",
+    "backend/app/services/public_state_service.py",
+    "backend/app/services/websocket_manager.py",
+    "backend/app/services/game_runner.py",
+    "backend/app/api/__init__.py",
+    "backend/app/api/routes_games.py",
+    "backend/app/api/websocket.py",
+    "backend/app/main.py",
+    "backend/tests/test_phase3.py",
+    "frontend/package.json",
+    "frontend/vite.config.ts",
+    "frontend/tsconfig.json",
+    "frontend/index.html",
+    "frontend/src/main.tsx",
+    "frontend/src/App.tsx",
+    "frontend/src/types/game.ts",
+    "frontend/src/api/client.ts",
+    "frontend/src/api/ws.ts",
+    "frontend/src/pages/HomePage.tsx",
+    "frontend/src/pages/GamePage.tsx",
+    "frontend/src/pages/ReplayPage.tsx",
+    "frontend/src/components/GameStatusBar.tsx",
+    "frontend/src/components/PlayerBoard.tsx",
+    "frontend/src/components/EventTimeline.tsx",
+    "frontend/src/components/HumanActionPanel.tsx",
+    "frontend/src/components/ReplayControls.tsx",
+    "frontend/src/components/RoleRevealPanel.tsx"
+  ],
+  "api_endpoints": [
+    {
+      "method": "POST",
+      "path": "/api/games",
+      "description": "创建游戏"
+    },
+    {
+      "method": "GET",
+      "path": "/api/games",
+      "description": "查询游戏列表"
+    },
+    {
+      "method": "GET",
+      "path": "/api/games/{id}/state",
+      "description": "公开游戏状态"
+    },
+    {
+      "method": "GET",
+      "path": "/api/games/{id}/players/{pid}/view",
+      "description": "玩家私有视角"
+    },
+    {
+      "method": "POST",
+      "path": "/api/games/{id}/step",
+      "description": "推进游戏一步"
+    },
+    {
+      "method": "POST",
+      "path": "/api/games/{id}/auto-run",
+      "description": "自动跑完整局"
+    },
+    {
+      "method": "POST",
+      "path": "/api/games/{id}/players/{pid}/actions",
+      "description": "提交人类动作"
+    },
+    {
+      "method": "GET",
+      "path": "/api/games/{id}/logs",
+      "description": "查询安全日志"
+    },
+    {
+      "method": "GET",
+      "path": "/api/games/{id}/replay",
+      "description": "查询回放数据"
+    }
+  ],
+  "test_result": {
+    "commands": [
+      {
+        "command": "pytest backend/tests/test_engine.py",
+        "passed": true,
+        "label": "Phase 1: 基础引擎",
+        "total": 19,
+        "passed_count": 19,
+        "failed_count": 0
+      },
+      {
+        "command": "pytest backend/tests/test_agents.py",
+        "passed": true,
+        "label": "Phase 2: Agent 接口",
+        "total": 12,
+        "passed_count": 12,
+        "failed_count": 0
+      },
+      {
+        "command": "pytest backend/tests/test_visibility.py",
+        "passed": true,
+        "label": "Phase 2: 信息隔离",
+        "total": 11,
+        "passed_count": 11,
+        "failed_count": 0
+      },
+      {
+        "command": "pytest backend/tests/test_agent_actions.py",
+        "passed": true,
+        "label": "Phase 2: 动作合法性",
+        "total": 8,
+        "passed_count": 8,
+        "failed_count": 0
+      },
+      {
+        "command": "pytest backend/tests/test_phase2_integration.py",
+        "passed": true,
+        "label": "Phase 2: 集成",
+        "total": 9,
+        "passed_count": 9,
+        "failed_count": 0
+      },
+      {
+        "command": "pytest backend/tests/test_phase3.py",
+        "passed": true,
+        "label": "Phase 3: API/WS/公开状态/Human/回放",
+        "total": 17,
+        "passed_count": 17,
+        "failed_count": 0
+      },
+      {
+        "command": "frontend npm run build + npx tsc --noEmit",
+        "passed": true,
+        "label": "前端构建验证",
+        "summary": "Build: OK (1.04s), Typecheck: 0 errors",
+        "failed_tests": []
+      }
+    ],
+    "all_passed": true
+  },
+  "security": {
+    "public_state_hides_roles_before_game_over": true,
+    "public_state_reveals_roles_after_game_over": true,
+    "ws_does_not_push_hidden_roles": true,
+    "human_action_validated_by_validator": true,
+    "game_over_action_actor_id_is_0": true,
+    "non_system_action_actor_id_not_0": true,
+    "logs_round_not_duplicate": true,
+    "logs_json_serializable": true
+  },
+  "known_limits": [
+    "Human timeout 机制尚未实现",
+    "WebSocket 为后端主动推送，尚未实现客户端请求",
+    "HumanActionPanel 未绑定具体 player_id 的私有视角",
+    "未接入真实大模型 API",
+    "未实现登录鉴权",
+    "回放不支持自动播放"
+  ],
+  "next_phase_recommendation": {
+    "ready_for_phase4": true,
+    "suggested_focus": [
+      "评测体系与复盘系统",
+      "自进化 Agent 训练循环",
+      "Leaderboard 展示"
+    ]
+  },
+  "frontend": {
+    "framework": "React + Vite + TypeScript",
+    "pages": [
+      "HomePage",
+      "GamePage",
+      "ReplayPage"
+    ],
+    "components": [
+      "PlayerBoard",
+      "EventTimeline",
+      "GameStatusBar",
+      "HumanActionPanel (已绑定 player_id 私有视角)",
+      "ReplayControls",
+      "RoleRevealPanel"
+    ],
+    "build_verified": true,
+    "typecheck_verified": true,
+    "build_output": "frontend/dist/"
+  },
+  "run_instructions": {
+    "backend": {
+      "command": "E:\\yy_project\\AI-werewolf\\.venv\\Scripts\\python.exe -m uvicorn app.main:app --port 8000",
+      "cwd": "E:\\yy_project\\AI-werewolf\backend",
+      "url": "http://127.0.0.1:8000"
+    },
+    "frontend": {
+      "command": "npm run dev",
+      "cwd": "E:\\yy_project\\AI-werewolf\frontend",
+      "url": "http://localhost:5173"
+    }
+  },
+  "human_action_panel": {
+    "fixed": true,
+    "description": "HumanActionPanel 已绑定 player_id，通过 GET /api/games/{id}/players/{pid}/view 获取 legal_actions，提交动作使用 POST /api/games/{id}/players/{pid}/actions，前端不猜测可行动作。等待轮次时显示'⏳ 等待其他玩家行动'。被拒绝时显示后端返回的 reason。",
+    "legal_actions_source": "后端私有视角 API (AgentView.legal_actions)",
+    "action_submission": "POST /api/games/{id}/players/{pid}/actions"
+  },
+  "websocket": {
+    "path": "/ws/games/{game_id}",
+    "events_supported": [
+      "snapshot",
+      "game_started",
+      "phase_changed",
+      "night_action_resolved",
+      "death_announced",
+      "player_spoke",
+      "vote_cast",
+      "vote_resolved",
+      "game_over",
+      "error"
+    ],
+    "does_not_expose_hidden_roles_before_game_over": true,
+    "tests_summary": {
+      "connection_tracking": true,
+      "snapshot_message_format": "已验证: type=snapshot, payload.state 存在",
+      "event_message_format": "已验证: type=event, event.event_type 存在",
+      "error_message_format": "已验证: type=error, message 存在",
+      "snapshot_no_hidden_roles": "snapshot 中不包含 hidden_roles / all_roles 字段",
+      "event_no_hidden_roles": "event 中不包含 hidden_roles / all_roles 字段"
+    }
+  }
+}

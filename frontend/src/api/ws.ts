@@ -1,14 +1,19 @@
 type MessageHandler = (data: any) => void;
 
+interface GameWebSocketOptions {
+  onMessage: MessageHandler;
+  onConnect?: () => void;
+  onDisconnect?: () => void;
+}
+
 export class GameWebSocket {
   private ws: WebSocket | null = null;
   private gameId: number;
-  private onMessage: MessageHandler;
-  private onDisconnect: (() => void) | null = null;
+  private options: GameWebSocketOptions;
 
-  constructor(gameId: number, onMessage: MessageHandler) {
+  constructor(gameId: number, options: GameWebSocketOptions) {
     this.gameId = gameId;
-    this.onMessage = onMessage;
+    this.options = options;
   }
 
   connect(): void {
@@ -20,12 +25,13 @@ export class GameWebSocket {
 
     this.ws.onopen = () => {
       console.log(`WS connected to game ${this.gameId}`);
+      this.options.onConnect?.();
     };
 
     this.ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        this.onMessage(data);
+        this.options.onMessage(data);
       } catch (e) {
         console.error("WS parse error:", e);
       }
@@ -33,21 +39,18 @@ export class GameWebSocket {
 
     this.ws.onclose = () => {
       console.log(`WS disconnected from game ${this.gameId}`);
-      this.onDisconnect?.();
+      this.options.onDisconnect?.();
     };
 
     this.ws.onerror = (err) => {
       console.error("WS error:", err);
+      this.options.onDisconnect?.();
     };
   }
 
   disconnect(): void {
     this.ws?.close();
     this.ws = null;
-  }
-
-  onDisconnectHandler(handler: () => void): void {
-    this.onDisconnect = handler;
   }
 
   isConnected(): boolean {

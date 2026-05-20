@@ -103,8 +103,33 @@ frontend/src/
 
 ```bash
 .venv\Scripts\python -m pytest backend/tests/ -q
-# 81 tests, Phase 1–3
+# 117 tests, Phase 1–3 + LLM
 ```
+
+---
+
+## LLM Agent (Optional)
+
+By default, all AI agents use **heuristic (rule-based)** strategies. The system also supports **LLM-driven agents** via any OpenAI-compatible API.
+
+### Enable LLM
+
+1. Copy `.env.example` to `.env` and fill in:
+   ```
+   LLM_ENABLED=true
+   LLM_API_KEY=sk-your-key-here
+   LLM_BASE_URL=https://api.openai.com/v1   # Or any OpenAI-compatible endpoint
+   LLM_MODEL=gpt-4o-mini
+   ```
+
+2. When enabled, agents prioritize LLM-generated decisions. If the LLM returns invalid JSON, times out, or returns an illegal action, the system automatically **falls back** to the heuristic agent.
+
+### Security
+
+- LLM only receives a **safe AgentView** — never the full `GameState`.
+- Hidden roles are never passed to the LLM.
+- The LLM output is parsed by `action_validator` before execution.
+- No API keys are logged or written to reports.
 
 ---
 

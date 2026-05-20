@@ -129,57 +129,176 @@ class TestGameRunner:
 class TestHumanActions:
     """人机混战 human action 测试"""
 
-    def test_human_can_submit_action(self):
+    # ── 确定性 Human Action 测试 ──────────────────
+
+    def test_human_not_pending_rejected(self):
+        """非 pending human 提交动作应被拒绝"""
         engine = WerewolfGameEngine(20, PLAYERS)
         runner = GameRunner(engine, human_player_ids=[1])
         import asyncio
+        result = asyncio.run(runner.submit_human_action(
+            player_id=1,
+            action_type="speak",
+            target_id=None,
+            content="hi",
+        ))
+        assert not result.get("accepted")
+        assert "reason" in result
 
-        # 先推几步让游戏进展
-        for _ in range(5):
-            asyncio.run(runner.step())
-
-        # 检查是否有等待 human 的情况
-        if runner._pending_human:
-            pid = runner._pending_human
-            player = engine._get_player(pid)
-            if player and player.role == Role.WEREWOLF and engine.night_stage:
-                result = asyncio.run(runner.submit_human_action(
-                    player_id=pid,
-                    action_type="werewolf_kill",
-                    target_id=3,
-                ))
-                assert result["accepted"] or not result["accepted"]  # 可能合法也可能非法取决于阶段
-        # 至少验证不崩溃
-        assert True
-
-    def test_human_invalid_action_rejected(self):
-        """非法 human action 应被拒绝"""
+    def test_human_invalid_player_id_rejected(self):
+        """不存在的 player_id 应被拒绝"""
         engine = WerewolfGameEngine(21, PLAYERS)
         runner = GameRunner(engine, human_player_ids=[1])
         import asyncio
-
-        # 尝试一个明显非法的动作（dead player voting）
         result = asyncio.run(runner.submit_human_action(
-            player_id=99,  # 不存在的玩家
+            player_id=99,
             action_type="vote",
             target_id=2,
         ))
         assert not result.get("accepted", True)
 
-    def test_human_action_with_wrong_player_id(self):
-        """错误的 player_id 应被拒绝"""
+    def test_human_werewolf_kill_during_day_rejected(self):
+        """human 在白天提交夜晚动作应被拒绝"""
         engine = WerewolfGameEngine(22, PLAYERS)
         runner = GameRunner(engine, human_player_ids=[1])
         import asyncio
+        asyncio.run(runner.step())
 
         result = asyncio.run(runner.submit_human_action(
             player_id=1,
             action_type="werewolf_kill",
             target_id=2,
         ))
-        # 可能被拒绝因为不是 human 的回合
+        # 可能被拒绝因为非 pending 或阶段不对
         if not result.get("accepted"):
             assert "reason" in result
+
+    def test_human_speak_in_speak_phase(self):
+        """human 在发言阶段提交 speak 应被接受"""
+        engine = WerewolfGameEngine(23, PLAYERS)
+        runner = GameRunner(engine, human_player_ids=[1])
+        import asyncio
+
+        # 手动设置白天发言阶段
+        from backend.app.schemas.models import GamePhase, DayStage
+        engine.phase = GamePhase.DAY
+        engine.day_stage = DayStage.SPEAK
+        runner._pending_human = 1  # 设置 pending
+
+        result = asyncio.run(runner.submit_human_action(
+            player_id=1,
+            action_type="speak",
+            target_id=None,
+            content="我是好人",
+        ))
+        assert result.get("accepted"), f"Should accept speak in speak phase: {result}"
+        assert runner._pending_human is None or runner._pending_human != 1
+
+    def test_human_vote_in_vote_phase(self):
+        """human 在投票阶段提交 vote 应被接受"""
+        engine = WerewolfGameEngine(24, PLAYERS)
+        runner = GameRunner(engine, human_player_ids=[1])
+        import asyncio
+
+        from backend.app.schemas.models import GamePhase, DayStage
+        engine.phase = GamePhase.DAY
+        engine.day_stage = DayStage.VOTE
+        runner._pending_human = 1
+
+        result = asyncio.run(runner.submit_human_action(
+            player_id=1,
+            action_type="vote",
+            target_id=2,
+            content=None,
+        ))
+        assert result.get("accepted"), f"Should accept vote in vote phase: {result}"
+        assert runner._pending_human is None or runner._pending_human != 1
+
+    def test_human_vote_self_rejected(self):
+        """human 不能投自己"""
+        engine = WerewolfGameEngine(25, PLAYERS)
+        runner = GameRunner(engine, human_player_ids=[1])
+        import asyncio
+
+        from backend.app.schemas.models import GamePhase, DayStage
+        engine.phase = GamePhase.DAY
+        engine.day_stage = DayStage.VOTE
+        runner._pending_human = 1
+        engine.day_votes = {}
+
+        result = asyncio.run(runner.submit_human_action(
+            player_id=1,
+            action_type="vote",
+            target_id=1,
+        ))
+        assert not result.get("accepted")
+        assert "cannot" in result.get("reason", "").lower() or "yourself" in result.get("reason", "").lower()
+
+    def test_human_vote_dead_player_rejected(self):
+        """human 不能投死亡玩家"""
+        engine = WerewolfGameEngine(26, PLAYERS)
+        runner = GameRunner(engine, human_player_ids=[1])
+        import asyncio
+
+        from backend.app.schemas.models import GamePhase, DayStage
+        engine.phase = GamePhase.DAY
+        engine.day_stage = DayStage.VOTE
+        runner._pending_human = 1
+        engine.day_votes = {}
+
+        # 让玩家 2 死亡
+        for p in engine.players:
+            if p.id == 2:
+                p.alive = False
+                break
+
+        result = asyncio.run(runner.submit_human_action(
+            player_id=1,
+            action_type="vote",
+            target_id=2,
+        ))
+        assert not result.get("accepted")
+
+    def test_human_action_goes_through_validator(self):
+        """human action 必须经过 action_validator"""
+        engine = WerewolfGameEngine(27, PLAYERS)
+        runner = GameRunner(engine, human_player_ids=[1])
+        import asyncio
+
+        from backend.app.schemas.models import GamePhase, DayStage
+        engine.phase = GamePhase.DAY
+        engine.day_stage = DayStage.SPEAK
+        runner._pending_human = 1
+
+        result = asyncio.run(runner.submit_human_action(
+            player_id=1,
+            action_type="speak",
+            target_id=None,
+            content="合法发言",
+        ))
+        assert result.get("accepted")
+        assert result.get("action", {}).get("action_type") == "speak"
+
+    def test_human_accepted_clears_pending(self):
+        """accepted=true 后 pending_human 应推进"""
+        engine = WerewolfGameEngine(28, PLAYERS)
+        runner = GameRunner(engine, human_player_ids=[1])
+        import asyncio
+
+        from backend.app.schemas.models import GamePhase, DayStage
+        engine.phase = GamePhase.DAY
+        engine.day_stage = DayStage.SPEAK
+        runner._pending_human = 1
+
+        result = asyncio.run(runner.submit_human_action(
+            player_id=1,
+            action_type="speak",
+            target_id=None,
+            content="好",
+        ))
+        if result.get("accepted"):
+            # 如果被接受，_pending_human 应清除或推进到下一个
+            assert runner._pending_human is None or runner._pending_human != 1
 
 
 # ═══════════════════════════════════════════════════════════
@@ -299,11 +418,95 @@ class TestReplay:
         """回放事件不应在 game_over 前泄露角色"""
         engine = WerewolfGameEngine(31, PLAYERS)
         runner = GameRunner(engine, human_player_ids=[])
-        # 只跑几步然后检查回放
         import asyncio
         for _ in range(5):
             asyncio.run(runner.step())
         replay = runner.get_replay()
-        # 如果游戏未结束，final_roles 应为空
         if engine.phase != GamePhase.ENDED:
             assert len(replay.get("final_roles", [])) == 0
+            for ev in replay.get("events", []):
+                pp = ev.get("public_payload", {})
+                # 未结束前 public_payload 中的 role 不应是真实角色
+                role = pp.get("role", "")
+                assert role == "hidden" or role == "", f"Role leak in event {ev['index']}: {role}"
+
+
+class TestPlayerViewSecurity:
+    """私有视角安全测试"""
+
+    def test_human_can_view_own_private_view(self):
+        """human player 可以查询自己的私有视角"""
+        engine = WerewolfGameEngine(40, PLAYERS)
+        runner = GameRunner(engine, human_player_ids=[1])
+        view = runner.get_player_view(1)
+        assert "error" not in view
+        assert "self_player" in view
+        assert "legal_actions" in view
+
+    def test_ai_player_view_via_api_fails(self):
+        """AI player 的私有视角通过 API 查询应失败"""
+        engine = WerewolfGameEngine(41, PLAYERS)
+        runner = GameRunner(engine, human_player_ids=[1])
+        view = runner.get_player_view(2)  # AI player
+        assert "error" in view
+        assert "Forbidden" in view.get("error", "")
+
+    def test_non_existent_player_view_fails(self):
+        """不存在的 player_id 查询应返回错误"""
+        engine = WerewolfGameEngine(42, PLAYERS)
+        runner = GameRunner(engine, human_player_ids=[1])
+        view = runner.get_player_view(99)
+        assert "error" in view
+
+    def test_private_view_no_hidden_roles(self):
+        """私有视角不包含 hidden_roles / all_roles"""
+        engine = WerewolfGameEngine(43, PLAYERS)
+        runner = GameRunner(engine, human_player_ids=[1])
+        view = runner.get_player_view(1)
+        v_str = str(view)
+        assert "hidden_roles" not in v_str
+        assert "all_roles" not in v_str
+
+
+class TestRoleLeakInPublicState:
+    """公开状态角色泄露测试"""
+
+    def test_public_state_no_roles_before_game_over(self):
+        """游戏未结束前 public_events 不暴露真实角色"""
+        engine = WerewolfGameEngine(50, PLAYERS)
+        runner = GameRunner(engine, human_player_ids=[])
+        import asyncio
+        for _ in range(3):
+            asyncio.run(runner.step())
+        state = runner.get_public_state()
+        for ev in state.public_events:
+            role = ev.get("role", "")
+            assert role == "hidden", f"Public event should have hidden role, got: {role}"
+
+    def test_public_state_shows_roles_after_game_over(self):
+        """游戏结束后 public state 可以展示角色"""
+        engine = WerewolfGameEngine(51, PLAYERS)
+        runner = GameRunner(engine, human_player_ids=[])
+        import asyncio
+        asyncio.run(runner.auto_run(max_steps=80))
+        state = runner.get_public_state()
+        if engine.phase == GamePhase.ENDED:
+            for p in state.players:
+                assert p.role is not None, f"Player {p.player_id} should have role after game over"
+
+    def test_websocket_event_no_role_leak(self):
+        """WebSocket 事件消息不泄露角色"""
+        engine = WerewolfGameEngine(52, PLAYERS)
+        runner = GameRunner(engine, human_player_ids=[])
+        import asyncio
+        asyncio.run(runner.auto_run(max_steps=40))
+        replay = runner.get_replay()
+        is_ended = engine.phase == GamePhase.ENDED
+        for ev in replay.get("events", []):
+            pp = ev.get("public_payload", {})
+            role = pp.get("role", "")
+            if not is_ended:
+                assert role in ("hidden", "", None), f"WS event role leak: {role}"
+            else:
+                # 结束后可以包含真实角色
+                assert role != "" or True

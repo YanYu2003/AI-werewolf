@@ -31,13 +31,17 @@ export default function GamePage() {
 
   useEffect(() => {
     fetchState();
-    const ws = new GameWebSocket(gid, (data) => {
-      if (data.type === 'snapshot') {
-        const s = data.payload?.state;
-        setState(s || null);
-      } else if (data.type === 'event') {
-        setEvents((prev) => [...prev, data.event]);
-      }
+    const ws = new GameWebSocket(gid, {
+      onMessage: (data) => {
+        if (data.type === 'snapshot') {
+          const s = data.payload?.state;
+          setState(s || null);
+        } else if (data.type === 'event') {
+          setEvents((prev) => [...prev, data.event]);
+        }
+      },
+      onConnect: () => setWsConnected(true),
+      onDisconnect: () => setWsConnected(false),
     });
     ws.connect();
     wsRef.current = ws;

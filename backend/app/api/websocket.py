@@ -32,9 +32,9 @@ async def game_websocket(ws: WebSocket, game_id: int):
     await ws_manager.connect(game_id, ws)
 
     try:
-        # 推送初始快照
+        # 推送初始快照（只发当前连接）
         state = runner.get_public_state()
-        await ws_manager.broadcast_snapshot(game_id, state.model_dump())
+        await ws_manager.send_snapshot(ws, game_id, state.model_dump())
 
         # 保持连接，等待后续事件推送
         while True:

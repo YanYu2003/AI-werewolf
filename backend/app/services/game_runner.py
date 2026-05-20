@@ -77,13 +77,17 @@ class GameRunner:
         )
 
     def get_player_view(self, player_id: int) -> Dict[str, Any]:
-        """获取某个玩家的私有视角"""
-        if player_id in self.human_player_ids or True:  # 允许任何 ID 查询
-            view = build_agent_view(self.engine, player_id)
-            d = view.model_dump()
-            d["legal_actions"] = self._get_human_legal_actions(player_id)
-            return d
-        return {"error": "Player not found"}
+        """获取某个玩家的私有视角（仅限 human player 查询自己的视角）"""
+        # TODO: auth required for production
+        if player_id not in self.human_player_ids:
+            return {"error": "Forbidden: only human players can query private view via API"}
+        player = self.engine._get_player(player_id)
+        if not player:
+            return {"error": "Player not found"}
+        view = build_agent_view(self.engine, player_id)
+        d = view.model_dump()
+        d["legal_actions"] = self._get_human_legal_actions(player_id)
+        return d
 
     def _get_human_legal_actions(self, player_id: int) -> List[str]:
         """返回人类玩家当前可用的动作"""
@@ -389,8 +393,13 @@ class GameRunner:
                 "action_type": action.action_type,
                 "target_id": action.target_id,
             })
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.exception("Agent action failed (player_id=%s, method=%s): %s",
+                            agent.player_id if hasattr(agent, 'player_id') else '?', method, str(e))
+            # 记录系统日志
+            self.engine._add_action("agent_error", 0, target_id=None, content=f"Agent {method} failed: {type(e).__name__}")
 
     # ── 日志 / 回放 ─────────────────────────────────
 
@@ -416,6 +425,9 @@ class GameRunner:
                     "werewolf_kill", "seer_investigate",
                     "vote", "hunter_shot", "hunter_triggered",
                 ):
+                    # 安全：不暴露隐藏角色
+                    is_ended = self.engine.phase == GamePhase.ENDED
+                    safe_role = act.get("role") if is_ended else "hidden"
                     events.append({
                         "index": idx,
                         "round": rlog.get("round", 0),
@@ -426,7 +438,7 @@ class GameRunner:
                         "event_type": action_type,
                         "public_payload": {
                             "actor_id": act.get("actor_id"),
-                            "role": act.get("role"),
+                            "role": safe_role,
                             "content": act.get("content", ""),
                         },
                         "timestamp": act.get("timestamp", ""),

@@ -1,5 +1,6 @@
 """
 AgentFactory — 根据角色创建对应的 Agent 实例
+支持 LLM-enabled 模式（可选）
 """
 
 from __future__ import annotations
@@ -22,23 +23,58 @@ _ROLE_AGENT_MAP = {
 }
 
 
-def create_agent(player_id: int, role: Role, name: str = "") -> BaseAgent:
+def create_agent(
+    player_id: int,
+    role: Role,
+    name: str = "",
+    enable_llm: bool = False,
+    llm_client=None,
+) -> BaseAgent:
     """
     根据角色创建一个 Agent 实例。
-    所有 Agent 共享统一的 BaseAgent 接口。
+    如果 enable_llm=True 且 llm_client 可用，包装为 LLMEnabledAgent。
     """
     cls = _ROLE_AGENT_MAP.get(role)
     if cls is None:
         raise ValueError(f"未知角色: {role}")
-    return cls(player_id=player_id, role=role.value, name=name)
+    heuristic = cls(player_id=player_id, role=role.value, name=name)
+
+    if enable_llm and llm_client is not None:
+        from .llm_agent import LLMEnabledAgent
+        from ..llm.parser import parse_llm_action
+        from ..llm.prompts import build_instruction_prompt
+
+        def prompt_builder(role_str, view_json, legal_actions):
+            from ..llm.prompts import build_system_prompt, build_instruction_prompt
+            return build_instruction_prompt(role_str, view_json, legal_actions)
+
+        return LLMEnabledAgent(
+            player_id=player_id,
+            role=role.value,
+            name=name,
+            heuristic_agent=heuristic,
+            llm_client=llm_client,
+            prompt_builder=prompt_builder,
+            parser_func=parse_llm_action,
+        )
+
+    return heuristic
 
 
-def create_agents_for_game(players: list) -> dict[int, BaseAgent]:
+def create_agents_for_game(
+    players: list,
+    enable_llm: bool = False,
+    llm_client=None,
+) -> dict[int, BaseAgent]:
     """
     为一局游戏中的所有玩家创建 Agent。
     返回 {player_id: BaseAgent} 字典。
     """
     agents: dict[int, BaseAgent] = {}
     for p in players:
-        agents[p.id] = create_agent(p.id, p.role, p.name)
+        agents[p.id] = create_agent(
+            p.id, p.role, p.name,
+            enable_llm=enable_llm,
+            llm_client=llm_client,
+        )
     return agents
