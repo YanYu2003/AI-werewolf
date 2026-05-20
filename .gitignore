@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Node
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Config
+.env
+.deepseek/
+
+# Root project docs (not for GitHub)
+/0.38.0
+/ai狼人杀项目说明.txt
+/phase1.txt
+/phase2.txt
+/phase3.txt
+/启动.txt
+/plan.md
+/phase1_report.json
+/phase2_report.json
+/phase3_report.json
+
+# Project temp files
+_check_*.py
+_dump_*.py
+_clean_*.py
+_gen_*.py
+_test_*.py
